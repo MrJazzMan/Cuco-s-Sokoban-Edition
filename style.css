@@ -25,6 +25,7 @@ html, body {
   color: var(--ink);
   user-select: none;
 }
+body { height: 100dvh; }
 
 /* ---------- Background scenery ---------- */
 .sky {
@@ -63,7 +64,7 @@ html, body {
   position: relative; z-index: 1;
   max-width: 720px; margin: 0 auto; height: 100%;
   display: flex; flex-direction: column; align-items: center;
-  padding: 10px 14px 48px;
+  padding: 10px 14px 44px;
   gap: 10px;
 }
 
@@ -92,7 +93,10 @@ html, body {
 .stat-value { font-size: clamp(16px, 4vw, 20px); font-weight: 800; }
 
 /* ---------- Board ---------- */
-.board-wrap { position: relative; display: grid; place-items: center; flex: 0 0 auto; }
+.board-wrap {
+  position: relative; display: grid; place-items: center;
+  flex: 1 1 auto; min-height: 0; width: 100%; overflow: hidden;
+}
 .board {
   position: relative;
   background:
@@ -177,7 +181,7 @@ html, body {
 .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #d9c39a, 0 2px 6px rgba(0,0,0,.15); }
 .btn:disabled { opacity: .38; cursor: not-allowed; filter: grayscale(.5); transform: none; box-shadow: 0 2px 0 #d9c39a; pointer-events: none; }
 
-.controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 18px; }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 4px; flex: 0 0 auto; }
 .ctrl { width: 56px; height: 52px; font-size: 24px; display: grid; place-items: center; }
 
 .dpad {
@@ -379,6 +383,44 @@ body.theme-desert .crate.done .ball {
 body.theme-desert .crate.done::after { color: #1f5e34; }
 body.theme-desert .logo { text-shadow: 0 2px 0 #9c7334, 0 4px 10px rgba(0,0,0,.3); }
 body.theme-desert .dbtn { color: #a8702c; }
+
+/* ---------- City theme ---------- */
+body.theme-city .sky {
+  background: linear-gradient(180deg, #2a3a5e 0%, #50688f 34%, #8a9ab0 60%, #c2c8d2 100%);
+}
+body.theme-city .sea {
+  top: 50%; height: 15%;
+  background: linear-gradient(180deg, #6b7b95 0%, #46566f 100%);
+  -webkit-mask-image: none;
+}
+body.theme-city .sea::after { display: none; }
+body.theme-city .sun {
+  background: radial-gradient(circle at 50% 50%, #fffefb, #ffe9a8 55%, #ffd166);
+  box-shadow: 0 0 60px 18px rgba(255, 220, 130, .4); opacity: .8;
+}
+body.theme-city .cell.floor {
+  background: radial-gradient(circle at 32% 26%, #d7dbe2 0%, #bcc2cc 100%);
+  box-shadow: inset 0 0 0 1px #a9b0bd;
+}
+body.theme-city .cell.wall {
+  background: linear-gradient(160deg, #7f8aa3 0%, #545f78 100%);
+  box-shadow: inset 0 3px 0 rgba(255,255,255,.16), inset 0 -4px 6px rgba(0,0,0,.34);
+}
+body.theme-city .cell.target::after {
+  border-color: #ffcaa0;
+  background: radial-gradient(circle, rgba(255,202,160,.3), transparent 70%);
+}
+body.theme-city .crate .ball {
+  background: radial-gradient(circle at 35% 30%, #b9c0cc, #6b7488 72%);
+  box-shadow: inset -6px -8px 10px rgba(0,0,0,.34), inset 4px 5px 8px rgba(255,255,255,.3), 0 5px 6px rgba(0,0,0,.3);
+}
+body.theme-city .crate.done .ball {
+  background: radial-gradient(circle at 35% 30%, #b6f5c8, #3fa05f 70%);
+  box-shadow: inset -5px -7px 10px rgba(0,0,0,.2), 0 0 16px 3px rgba(94,194,122,.72);
+}
+body.theme-city .crate.done::after { color: #1f5e34; }
+body.theme-city .logo { text-shadow: 0 2px 0 #545f78, 0 4px 10px rgba(0,0,0,.35); }
+body.theme-city .dbtn { color: #4a5878; }
 
 .site-footer {
   position: fixed; left: 0; right: 0; bottom: 0;

@@ -211,18 +211,18 @@
     el.dataset.r = r; el.dataset.c = c;
   }
 
+  // Scale the board to fit whatever space the flex layout actually grants the
+  // wrapper. Measuring the live box (instead of guessing reserved px) keeps the
+  // board centered and on-screen across phones, tablets and desktop.
   function fitBoard() {
     const wrap = board.parentElement;
-    const availW = Math.min(window.innerWidth - 28, 700);
-    const reserved = 360; // header + stats + controls + footer breathing room
-    const availH = window.innerHeight - reserved;
+    const availW = Math.max(wrap.clientWidth - 8, 40);
+    const availH = Math.max(wrap.clientHeight - 8, 40);
     const bw = state.cols * TILE + 12;
     const bh = state.rows * TILE + 12;
     const scale = Math.min(availW / bw, availH / bh, 1.08);
     board.style.transform = `scale(${scale})`;
-    board.style.transformOrigin = "top center";
-    wrap.style.width = bw * scale + "px";
-    wrap.style.height = bh * scale + "px";
+    board.style.transformOrigin = "center center";
   }
 
   // ---------- Movement ----------
@@ -489,7 +489,10 @@
     touchStart = null;
   }, { passive: true });
 
-  window.addEventListener("resize", () => state && fitBoard());
+  const refit = () => state && fitBoard();
+  window.addEventListener("resize", refit);
+  window.addEventListener("orientationchange", () => setTimeout(refit, 250));
+  window.addEventListener("load", () => requestAnimationFrame(refit));
 
   // ---------- Music ----------
   let muted = !!save.muted;
