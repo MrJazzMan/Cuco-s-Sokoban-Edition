@@ -82,6 +82,7 @@ const I18n = (() => {
         beach: { title: "Beach Sokoban", name: "Beach" },
         jungle: { title: "Jungle Sokoban", name: "Jungle" },
         desert: { title: "Desert Sokoban", name: "Desert" },
+        city: { title: "City Sokoban", name: "City" },
       },
       levels: {
         beach: ["First Steps", "Tide Pool", "Sandbar", "Lagoon", "Coral Maze",
@@ -91,6 +92,8 @@ const I18n = (() => {
           "Ancient Idol", "Lost City"],
         desert: ["Oasis", "Twin Dunes", "Sun-Baked", "Caravan", "Scarab",
           "Sandstorm", "Mirage", "Sphinx", "Buried Tomb", "Pharaoh's Vault"],
+        city: ["Downtown", "Crossroads", "Subway", "Skyline", "Traffic Jam",
+          "City Park", "Rooftops", "Old Town", "Grand Plaza", "Metropolis"],
       },
     },
 
@@ -156,6 +159,7 @@ const I18n = (() => {
         beach: { title: "Sokoban da Praia", name: "Praia" },
         jungle: { title: "Sokoban da Selva", name: "Selva" },
         desert: { title: "Sokoban do Deserto", name: "Deserto" },
+        city: { title: "Sokoban da Cidade", name: "Cidade" },
       },
       levels: {
         beach: ["Primeiros Passos", "Poça de Maré", "Banco de Areia", "Lagoa",
@@ -166,6 +170,9 @@ const I18n = (() => {
         desert: ["Oásis", "Dunas Gémeas", "Escaldado pelo Sol", "Caravana",
           "Escaravelho", "Tempestade de Areia", "Miragem", "Esfinge",
           "Túmulo Soterrado", "Câmara do Faraó"],
+        city: ["Baixa", "Cruzamento", "Metro", "Horizonte", "Engarrafamento",
+          "Jardim da Cidade", "Telhados", "Cidade Velha", "Praça Grande",
+          "Metrópole"],
       },
     },
   };
