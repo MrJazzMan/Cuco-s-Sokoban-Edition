@@ -6,8 +6,7 @@
 #   SFTP_SERVER_PORT  22
 #   SFTP_USERNAME     full username including number suffix
 #   SFTP_PASSWORD     SFTP password
-#   SFTP_PATH         site root, e.g. /web/beiradagua.info/
-#                     (the workflow appends gukoban/ automatically)
+#   SFTP_PATH         not used for the remoteDir — kept for reference only
 
 name: Deploy to Bravenet
 
@@ -41,5 +40,5 @@ jobs:
           username: ${{ secrets.SFTP_USERNAME }}
           password: ${{ secrets.SFTP_PASSWORD }}
           localDir: dist/
-          remoteDir: ${{ secrets.SFTP_PATH }}gukoban/
+          remoteDir: gukoban/
           forceUpload: true
