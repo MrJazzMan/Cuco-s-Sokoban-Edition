@@ -31,6 +31,8 @@
   const helpModal = $("helpModal");
   const decorEl = $("decor");
   const elSound = $("btnSound");
+  const entryScreen = $("entryScreen");
+  const entryPlay = $("entryPlay");
 
   // ---- Persistent progress ----
   const save = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
@@ -84,7 +86,7 @@
     save.lastLevel = idx;
     persist();
     refreshStats();
-    elPill.textContent = `Stage ${def.stageIdx + 1} · Lvl ${def.levelInStage + 1} · ${def.name}`;
+    updatePill();
     winOverlay.hidden = true;
     updateNav();
     board.focus({ preventScroll: true });
@@ -95,10 +97,17 @@
     $("btnNext").disabled = !(idx + 1 < FLAT.length && unlocked(idx + 1));
   }
 
+  function updatePill() {
+    const def = FLAT[idx];
+    const name = I18n.levelName(def.stage.theme, def.levelInStage, def.name);
+    elPill.textContent =
+      `${I18n.t("stage")} ${def.stageIdx + 1} · ${I18n.t("lvl")} ${def.levelInStage + 1} · ${name}`;
+  }
+
   // ---------- Theming ----------
   function applyTheme(theme) {
     document.body.className = "theme-" + theme.theme;
-    elLogo.textContent = `${theme.emoji} ${theme.title}`;
+    elLogo.textContent = `${theme.emoji} ${I18n.stageTitle(theme.theme)}`;
     const sky = document.querySelectorAll(".cloud");
     (theme.skyItems || []).forEach((emo, i) => { if (sky[i]) sky[i].textContent = emo; });
     buildDecor(theme);
@@ -321,9 +330,10 @@
 
   function showWin() {
     const isLast = idx === FLAT.length - 1;
-    winStats.textContent = `${state.moves} moves · ${state.pushes} pushes` +
-      (save.best[idx] === state.moves ? "  🏆 new best!" : "");
-    $("winNext").textContent = isLast ? "🏁 Finish" : "Next Level →";
+    winStats.textContent =
+      `${state.moves} ${I18n.t("movesUnit")} · ${state.pushes} ${I18n.t("pushesUnit")}` +
+      (save.best[idx] === state.moves ? "  " + I18n.t("newBest") : "");
+    $("winNext").textContent = isLast ? I18n.t("finish") : I18n.t("nextLevel");
     winOverlay.hidden = false;
     launchConfetti();
   }
@@ -370,8 +380,8 @@
       if (!unlocked(stageStart)) {
         const lock = document.createElement("div");
         lock.className = "stage-locked";
-        lock.innerHTML = `<span class="lk">🔒</span><span>Uncharted territory…</span>` +
-          `<small>Clear every level above to discover what's next</small>`;
+        lock.innerHTML = `<span class="lk">🔒</span><span>${I18n.t("uncharted")}</span>` +
+          `<small>${I18n.t("unchartedSub")}</small>`;
         levelGrid.appendChild(lock);
         break;
       }
@@ -379,7 +389,8 @@
       const head = document.createElement("div");
       head.className = "stage-head";
       const cleared = stage.levels.filter((_, li) => save.cleared[stageStart + li]).length;
-      head.innerHTML = `<span>${stage.emoji} Stage ${si + 1} · ${stage.name}</span>` +
+      head.innerHTML =
+        `<span>${stage.emoji} ${I18n.t("stage")} ${si + 1} · ${I18n.stageName(stage.theme)}</span>` +
         `<span class="stage-prog">${cleared}/${stage.levels.length} ⭐</span>`;
       levelGrid.appendChild(head);
 
@@ -389,22 +400,26 @@
         const fi = stageStart + li;
         const card = document.createElement("button");
         card.className = "level-card";
+        const lvlLabel = `${I18n.t("lvl").toUpperCase()} ${li + 1}`;
         if (unlocked(fi)) {
           if (save.cleared[fi]) card.classList.add("done");
           if (fi === idx) card.classList.add("current");
           const best = save.best[fi];
+          const bestTxt = best != null
+            ? `${I18n.t("bestPrefix")} ${best} ${I18n.t("movesUnit")}`
+            : I18n.t("notCleared");
           card.innerHTML =
-            `<div class="num">LEVEL ${li + 1}</div>` +
-            `<div class="nm">${lvl.name}</div>` +
-            `<div class="lv-best">${best != null ? "Best: " + best + " moves" : "Not cleared"}</div>`;
+            `<div class="num">${lvlLabel}</div>` +
+            `<div class="nm">${I18n.levelName(stage.theme, li, lvl.name)}</div>` +
+            `<div class="lv-best">${bestTxt}</div>`;
           card.addEventListener("click", () => { levelModal.hidden = true; loadLevel(fi); });
         } else {
           card.classList.add("locked");
           card.disabled = true;
           card.innerHTML =
-            `<div class="num">LEVEL ${li + 1}</div>` +
+            `<div class="num">${lvlLabel}</div>` +
             `<div class="nm lk">🔒</div>` +
-            `<div class="lv-best">Locked</div>`;
+            `<div class="lv-best">${I18n.t("locked")}</div>`;
         }
         grid.appendChild(card);
       });
@@ -424,6 +439,7 @@
   function closeModals() { levelModal.hidden = true; helpModal.hidden = true; }
 
   document.addEventListener("keydown", (e) => {
+    if (entryScreen && !entryScreen.hidden) return; // title screen up — ignore game keys
     if (anyModalOpen()) { if (e.key === "Escape") closeModals(); return; }
     if (KEYMAP[e.key]) { e.preventDefault(); move(KEYMAP[e.key]); return; }
     if (e.key === "u" || e.key === "U" || e.key === "z" || e.key === "Z") undo();
@@ -502,7 +518,49 @@
     else Music.setMuted(muted);
   });
 
+  // ---------- Localization ----------
+  // Re-render every dynamic, language-dependent string after a language change.
+  function relocalize() {
+    I18n.apply();
+    reflectLangButtons();
+    if (state) {
+      elLogo.textContent = `${state.theme.emoji} ${I18n.stageTitle(state.theme.theme)}`;
+      updatePill();
+    }
+    updateEntryPlayLabel();
+    if (!levelModal.hidden) openLevels();
+    if (state && state.won && !winOverlay.hidden) showWin();
+  }
+
+  const langButtons = () => document.querySelectorAll(".lang-btn");
+  function reflectLangButtons() {
+    const cur = I18n.getLang();
+    langButtons().forEach((b) => b.classList.toggle("active", b.dataset.lang === cur));
+  }
+  langButtons().forEach((b) =>
+    b.addEventListener("click", () => I18n.setLang(b.dataset.lang))
+  );
+  I18n.onChange(relocalize);
+
+  // ---------- Entry screen ----------
+  const hasProgress = () =>
+    Object.keys(save.cleared).length > 0 ||
+    (typeof save.lastLevel === "number" && save.lastLevel > 0);
+  function updateEntryPlayLabel() {
+    entryPlay.textContent = hasProgress() ? I18n.t("continueGame") : I18n.t("play");
+  }
+  function startGame() {
+    if (entryScreen.hidden) return;
+    entryScreen.hidden = true;
+    if (!muted) kickMusic();
+    board.focus({ preventScroll: true });
+  }
+  entryPlay.addEventListener("click", startGame);
+
   // ---------- Boot ----------
+  I18n.apply();
+  reflectLangButtons();
+  updateEntryPlayLabel();
   const startAt = typeof save.lastLevel === "number" ? save.lastLevel : 0;
   loadLevel(startAt);
 })();

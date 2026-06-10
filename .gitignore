@@ -10,3 +10,6 @@
 # Node (only if tooling is ever added)
 node_modules/
 npm-debug.log*
+
+# Deploy staging folder (built by CI)
+dist/

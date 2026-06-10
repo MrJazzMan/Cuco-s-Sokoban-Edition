@@ -29,7 +29,7 @@ jobs:
       - name: Stage files to upload
         run: |
           mkdir -p dist
-          cp index.html style.css game.js levels.js music.js .htaccess dist/
+          cp index.html style.css game.js levels.js music.js i18n.js .htaccess dist/
           ls -la dist
 
       - name: Upload to Bravenet (SFTP)
