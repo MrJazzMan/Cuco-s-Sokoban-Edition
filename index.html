@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#37b6c4" />
-  <title>Beach Sokoban 🏖️</title>
+  <title>Sokoban</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,10 +28,10 @@
     </header>
 
     <section class="stats">
-      <div class="stat"><span class="stat-label">Moves</span><span class="stat-value" id="moveCount">0</span></div>
-      <div class="stat"><span class="stat-label">Pushes</span><span class="stat-value" id="pushCount">0</span></div>
-      <div class="stat"><span class="stat-label">Crates</span><span class="stat-value" id="crateCount">0 / 0</span></div>
-      <div class="stat"><span class="stat-label">Best</span><span class="stat-value" id="bestScore">—</span></div>
+      <div class="stat"><span class="stat-label" data-i18n="moves">Moves</span><span class="stat-value" id="moveCount">0</span></div>
+      <div class="stat"><span class="stat-label" data-i18n="pushes">Pushes</span><span class="stat-value" id="pushCount">0</span></div>
+      <div class="stat"><span class="stat-label" data-i18n="crates">Crates</span><span class="stat-value" id="crateCount">0 / 0</span></div>
+      <div class="stat"><span class="stat-label" data-i18n="best">Best</span><span class="stat-value" id="bestScore">—</span></div>
     </section>
 
     <div class="board-wrap">
@@ -39,27 +39,27 @@
       <div class="win-overlay" id="winOverlay" hidden>
         <div class="win-card">
           <div class="win-emoji">🥥</div>
-          <h2>Level Cleared!</h2>
-          <p id="winStats">Nice work, beach bum.</p>
+          <h2 data-i18n="levelCleared">Level Cleared!</h2>
+          <p id="winStats"></p>
           <div class="win-buttons">
-            <button class="btn btn-ghost" id="winReplay">↺ Replay</button>
-            <button class="btn btn-primary" id="winNext">Next Level →</button>
+            <button class="btn btn-ghost" id="winReplay" data-i18n="replay">↺ Replay</button>
+            <button class="btn btn-primary" id="winNext" data-i18n="nextLevel">Next Level →</button>
           </div>
         </div>
       </div>
     </div>
 
     <nav class="controls">
-      <button class="btn ctrl" id="btnLevels" title="Choose level">🗺️</button>
-      <button class="btn ctrl" id="btnUndo" title="Undo (U)">↩️</button>
-      <button class="btn ctrl" id="btnRestart" title="Restart (R)">🔄</button>
-      <button class="btn ctrl" id="btnPrev" title="Previous level">⏮️</button>
-      <button class="btn ctrl" id="btnNext" title="Next level">⏭️</button>
-      <button class="btn ctrl" id="btnSound" title="Music on/off">🔊</button>
-      <button class="btn ctrl" id="btnHelp" title="Help & controls">❓</button>
+      <button class="btn ctrl" id="btnLevels" data-i18n-title="tipChooseLevel" title="Choose level">🗺️</button>
+      <button class="btn ctrl" id="btnUndo" data-i18n-title="tipUndo" title="Undo (U)">↩️</button>
+      <button class="btn ctrl" id="btnRestart" data-i18n-title="tipRestart" title="Restart (R)">🔄</button>
+      <button class="btn ctrl" id="btnPrev" data-i18n-title="tipPrev" title="Previous level">⏮️</button>
+      <button class="btn ctrl" id="btnNext" data-i18n-title="tipNext" title="Next level">⏭️</button>
+      <button class="btn ctrl" id="btnSound" data-i18n-title="tipSound" title="Music on/off">🔊</button>
+      <button class="btn ctrl" id="btnHelp" data-i18n-title="tipHelp" title="Help & controls">❓</button>
     </nav>
 
-    <p class="hint">Swipe on the board or tap <b>❓</b> for the control pad</p>
+    <p class="hint" data-i18n-html="hint">Swipe on the board or tap <b>❓</b> for the control pad</p>
   </main>
 
   <footer class="site-footer">© 2026 Cuco Enterprise</footer>
@@ -68,8 +68,8 @@
   <div class="modal" id="levelModal" hidden>
     <div class="modal-card">
       <div class="modal-head">
-        <h2>🗺️ Choose a Level</h2>
-        <button class="btn close" id="closeModal" aria-label="Close">✕</button>
+        <h2 data-i18n="chooseLevel">🗺️ Choose a Level</h2>
+        <button class="btn close" id="closeModal" data-i18n-aria="closeLabel" aria-label="Close">✕</button>
       </div>
       <div class="level-grid" id="levelGrid"></div>
     </div>
@@ -79,11 +79,11 @@
   <div class="modal" id="helpModal" hidden>
     <div class="modal-card">
       <div class="modal-head">
-        <h2>❓ How to Play</h2>
-        <button class="btn close" id="closeHelp" aria-label="Close">✕</button>
+        <h2 data-i18n="howToPlay">❓ How to Play</h2>
+        <button class="btn close" id="closeHelp" data-i18n-aria="closeLabel" aria-label="Close">✕</button>
       </div>
       <div class="help-body">
-        <p>Push every <b>crate</b> onto a glowing <b>target spot</b>. You can only push — never pull — and just one crate at a time.</p>
+        <p data-i18n-html="helpIntro">Push every <b>crate</b> onto a glowing <b>target spot</b>. You can only push — never pull — and just one crate at a time.</p>
 
         <div class="dpad" aria-label="Direction pad">
           <button class="btn dbtn up" data-dir="up" aria-label="Up">▲</button>
@@ -93,19 +93,43 @@
         </div>
 
         <ul class="key-list">
-          <li><span class="keys"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></span> or <span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span> move</li>
-          <li><span class="keys"><kbd>swipe</kbd></span> move on touch screens</li>
-          <li><span class="keys"><kbd>U</kbd></span> / <span class="keys"><kbd>Z</kbd></span> undo last move</li>
-          <li><span class="keys"><kbd>R</kbd></span> restart the level</li>
-          <li><span class="keys"><kbd>N</kbd></span> next level</li>
+          <li><span class="keys"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></span> / <span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span> <span data-i18n="helpMove">move</span></li>
+          <li><span class="keys"><kbd>swipe</kbd></span> <span data-i18n="helpMoveTouch">move on touch screens</span></li>
+          <li><span class="keys"><kbd>U</kbd></span> / <span class="keys"><kbd>Z</kbd></span> <span data-i18n="helpUndo">undo last move</span></li>
+          <li><span class="keys"><kbd>R</kbd></span> <span data-i18n="helpRestart">restart the level</span></li>
+          <li><span class="keys"><kbd>N</kbd></span> <span data-i18n="helpNext">next level</span></li>
         </ul>
-        <p class="help-tip">Stuck? Use <b>Undo</b> freely — there's no penalty.</p>
+        <p class="help-tip" data-i18n-html="helpTip">Stuck? Use <b>Undo</b> freely — there's no penalty.</p>
+
+        <div class="lang-row">
+          <span class="lang-row-label" data-i18n="language">Language</span>
+          <div class="lang-switch" id="langSwitchHelp">
+            <button class="lang-btn" data-lang="en" type="button">🇬🇧 EN</button>
+            <button class="lang-btn" data-lang="pt" type="button">🇵🇹 PT</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <div class="confetti" id="confetti" aria-hidden="true"></div>
 
+  <!-- Entry / title screen -->
+  <div class="entry" id="entryScreen">
+    <div class="entry-card">
+      <div class="entry-emoji">🧩</div>
+      <h1 class="entry-title">Sokoban</h1>
+      <p class="entry-tagline" data-i18n="entryTagline">Push every crate onto a glowing target. Pure puzzle bliss.</p>
+      <div class="lang-switch entry-lang" id="langSwitchEntry">
+        <button class="lang-btn" data-lang="en" type="button">🇬🇧 EN</button>
+        <button class="lang-btn" data-lang="pt" type="button">🇵🇹 PT</button>
+      </div>
+      <button class="btn btn-primary entry-play" id="entryPlay" data-i18n="play">Play</button>
+      <p class="entry-controls" data-i18n="entryControls">Arrow keys / WASD to move · Swipe on touch</p>
+    </div>
+  </div>
+
+  <script src="i18n.js"></script>
   <script src="levels.js"></script>
   <script src="music.js"></script>
   <script src="game.js"></script>
