@@ -1,9 +1,12 @@
 # Deploy static game files to Bravenet via SFTP on every push to main.
+# Public URL: https://beiradagua.info/gukoban/
+#
 # Setup: GitHub repo → Settings → Secrets and variables → Actions
-#   BNET_SFTP_HOST     e.g. ftp3.bravehost.com (see Bravenet → SFTP tab)
+#   BNET_SFTP_HOST     e.g. ftp3.bravehost.com (Bravenet → SFTP tab)
 #   BNET_SFTP_USER     full username including number suffix
 #   BNET_SFTP_PASSWORD SFTP password (not your Bravenet login)
-#   BNET_REMOTE_DIR    remote folder, e.g. gukoban/ or /web/yoursite.bravehost.com/gukoban/
+#   BNET_REMOTE_DIR    /web/beiradagua.info/gukoban/
+#                      (or gukoban/ if the SFTP account home is already the site root)
 
 name: Deploy to Bravenet
 
