@@ -2,7 +2,7 @@
 # Public URL: https://beiradagua.info/gukoban/
 #
 # Setup: GitHub repo → Settings → Secrets and variables → Actions
-#   BNET_SFTP_HOST     e.g. ftp3.bravehost.com (Bravenet → SFTP tab)
+#   BNET_SFTP_HOST     SFTP host (Bravenet → SFTP tab), e.g. ftp3.bravehost.com
 #   BNET_SFTP_USER     full username including number suffix
 #   BNET_SFTP_PASSWORD SFTP password (not your Bravenet login)
 #   BNET_REMOTE_DIR    /web/beiradagua.info/gukoban/
@@ -26,19 +26,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Upload game files (SFTP)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+      - name: Stage files to upload
+        run: |
+          mkdir -p dist
+          cp index.html style.css game.js levels.js music.js dist/
+          ls -la dist
+
+      - name: Upload to Bravenet (SFTP)
+        uses: wangyucode/sftp-upload-action@v3
         with:
-          server: ${{ secrets.BNET_SFTP_HOST }}
+          host: ${{ secrets.BNET_SFTP_HOST }}
+          port: 22
           username: ${{ secrets.BNET_SFTP_USER }}
           password: ${{ secrets.BNET_SFTP_PASSWORD }}
-          port: 22
-          protocol: sftp
-          local-dir: ./
-          server-dir: ${{ secrets.BNET_REMOTE_DIR }}
-          exclude: |
-            **/.git*
-            **/.github/**
-            **/verify.js
-            **/gen.js
-            **/README.md
+          localDir: dist/
+          remoteDir: ${{ secrets.BNET_REMOTE_DIR }}
+          forceUpload: true
