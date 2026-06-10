@@ -1,0 +1,41 @@
+# Deploy static game files to Bravenet via SFTP on every push to main.
+# Setup: GitHub repo → Settings → Secrets and variables → Actions
+#   BNET_SFTP_HOST     e.g. ftp3.bravehost.com (see Bravenet → SFTP tab)
+#   BNET_SFTP_USER     full username including number suffix
+#   BNET_SFTP_PASSWORD SFTP password (not your Bravenet login)
+#   BNET_REMOTE_DIR    remote folder, e.g. gukoban/ or /web/yoursite.bravehost.com/gukoban/
+
+name: Deploy to Bravenet
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-bravenet
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload game files (SFTP)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.BNET_SFTP_HOST }}
+          username: ${{ secrets.BNET_SFTP_USER }}
+          password: ${{ secrets.BNET_SFTP_PASSWORD }}
+          port: 22
+          protocol: sftp
+          local-dir: ./
+          server-dir: ${{ secrets.BNET_REMOTE_DIR }}
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/verify.js
+            **/gen.js
+            **/README.md
