@@ -1,0 +1,56 @@
+# Publish the static game to GitHub Pages on every push to main.
+# Public URL (after DNS): https://gukoban.miguelg.dev
+#
+# One-time setup:
+#   1. Settings → Pages → Build and deployment → Source: GitHub Actions.
+#   2. The repository must be public (or on a plan that serves private Pages
+#      to the internet). A private free repo keeps the site invisible.
+#   3. In Cloudflare DNS for miguelg.dev, add a CNAME:
+#        name:   gukoban
+#        target: mrjazzman.github.io
+#        proxy:  DNS only (grey cloud) so the Pages certificate can issue.
+#   4. Settings → Pages → Custom domain: gukoban.miguelg.dev
+#
+# miguelg.dev and www.miguelg.dev stay on the existing Vercel site.
+# This subdomain is only the game.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage site
+        run: |
+          mkdir -p _site
+          cp index.html style.css game.js levels.js music.js i18n.js _site/
+          ls -la _site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
