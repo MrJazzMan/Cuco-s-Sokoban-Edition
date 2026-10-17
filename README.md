@@ -9,6 +9,11 @@ level in front of them; everything ahead stays a surprise. 🔒
 
 ## ▶️ Play
 
+The old public URL, `https://beiradagua.info/gukoban/`, is an expired Bravenet
+site. The game is published at **https://gukoban.miguelg.dev** once the DNS
+steps below are in place. `miguelg.dev` and `www.miguelg.dev` stay the personal
+site on Vercel; only the `gukoban` subdomain serves this game.
+
 Open `index.html` in any modern browser, or serve the folder:
 
 ```bash
@@ -62,6 +67,18 @@ New levels can be produced with the reverse-move generator (solvable by construc
 ```bash
 node gen.js
 ```
+
+## 🚀 Hosting
+
+Pushes to `main` publish the static files with GitHub Pages
+(`.github/workflows/deploy-pages.yml`). Before the first deploy:
+
+1. Repository **Settings → Pages → Source: GitHub Actions**.
+2. Make the repository **public** if it is still private. Private Pages on the
+   free plan are not visible on the internet.
+3. In the Cloudflare DNS for `miguelg.dev`, add a **CNAME** `gukoban` →
+   `mrjazzman.github.io`, with the proxy turned off (DNS only).
+4. In **Settings → Pages → Custom domain**, add `gukoban.miguelg.dev`.
 
 ## 🛠️ Tech
 
