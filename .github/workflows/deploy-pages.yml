@@ -1,18 +1,6 @@
 # Publish the static game to GitHub Pages on every push to main.
-# Public URL (after DNS): https://gukoban.miguelg.dev
-#
-# One-time setup:
-#   1. Settings → Pages → Build and deployment → Source: GitHub Actions.
-#   2. The repository must be public (or on a plan that serves private Pages
-#      to the internet). A private free repo keeps the site invisible.
-#   3. In Cloudflare DNS for miguelg.dev, add a CNAME:
-#        name:   gukoban
-#        target: mrjazzman.github.io
-#        proxy:  DNS only (grey cloud) so the Pages certificate can issue.
-#   4. Settings → Pages → Custom domain: gukoban.miguelg.dev
-#
-# miguelg.dev and www.miguelg.dev stay on the existing Vercel site.
-# This subdomain is only the game.
+# https://mrjazzman.github.io/Cuco-s-Sokoban-Edition/
+# Custom domain, set in the repository Pages settings: gukoban.miguelg.dev
 
 name: Deploy to GitHub Pages
 

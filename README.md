@@ -9,10 +9,10 @@ level in front of them; everything ahead stays a surprise. 🔒
 
 ## ▶️ Play
 
-The old public URL, `https://beiradagua.info/gukoban/`, is an expired Bravenet
-site. The game is published at **https://gukoban.miguelg.dev** once the DNS
-steps below are in place. `miguelg.dev` and `www.miguelg.dev` stay the personal
-site on Vercel; only the `gukoban` subdomain serves this game.
+**https://mrjazzman.github.io/Cuco-s-Sokoban-Edition/**
+
+The same site is also served at **https://gukoban.miguelg.dev** when that
+custom domain is saved in the repository Pages settings.
 
 Open `index.html` in any modern browser, or serve the folder:
 
@@ -34,7 +34,7 @@ python3 -m http.server 8000   # then visit http://localhost:8000
 
 ## ✨ Features
 
-- **Three themed stages**, progressively unlocked so the journey stays a surprise.
+- **Four themed stages** (Beach, Jungle, Desert, City), progressively unlocked so the journey stays a surprise.
 - **Smooth animated tiles**, a player avatar that faces where it walks, and crate "settle" feedback.
 - **Living backgrounds** — creatures drift across the scenery, unique to each theme.
 - **Procedural music** generated live with the Web Audio API (no audio files), with a different mood per stage.
@@ -71,18 +71,12 @@ node gen.js
 ## 🚀 Hosting
 
 Pushes to `main` publish the static files with GitHub Pages
-(`.github/workflows/deploy-pages.yml`). Before the first deploy:
-
-1. Repository **Settings → Pages → Source: GitHub Actions**.
-2. Make the repository **public** if it is still private. Private Pages on the
-   free plan are not visible on the internet.
-3. In the Cloudflare DNS for `miguelg.dev`, add a **CNAME** `gukoban` →
-   `mrjazzman.github.io`, with the proxy turned off (DNS only).
-4. In **Settings → Pages → Custom domain**, add `gukoban.miguelg.dev`.
+(`.github/workflows/deploy-pages.yml`).
 
 ## 🛠️ Tech
 
-Vanilla HTML / CSS / JavaScript. No frameworks, no bundler, no network calls.
+Vanilla HTML, CSS and JavaScript. No frameworks and no bundler. The page loads
+the Baloo 2 font from Google Fonts; the game itself makes no network calls.
 
 ---
 
