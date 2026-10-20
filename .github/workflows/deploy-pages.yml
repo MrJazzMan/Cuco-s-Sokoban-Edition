@@ -1,37 +1,45 @@
-# Publish the static game to GitHub Pages on every push to main.
-# Public URL (after DNS): https://gukoban.miguelg.dev
+# Publish Sucoban to GitHub Pages on every push to main.
+# Live at https://mrjazzman.github.io/Cuco-s-Sokoban-Edition/
+# (or the custom domain set in Settings → Pages, see README).
 #
-# One-time setup:
-#   1. Settings → Pages → Build and deployment → Source: GitHub Actions.
-#   2. The repository must be public (or on a plan that serves private Pages
-#      to the internet). A private free repo keeps the site invisible.
-#   3. In Cloudflare DNS for miguelg.dev, add a CNAME:
-#        name:   gukoban
-#        target: mrjazzman.github.io
-#        proxy:  DNS only (grey cloud) so the Pages certificate can issue.
-#   4. Settings → Pages → Custom domain: gukoban.miguelg.dev
-#
-# miguelg.dev and www.miguelg.dev stay on the existing Vercel site.
-# This subdomain is only the game.
+# The deploy only runs if every level passes verify.js.
 
 name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify every level is well-formed and solvable
+        run: node verify.js
+
   deploy:
+    needs: verify
+    if: github.event_name != 'pull_request'
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -43,8 +51,10 @@ jobs:
       - name: Stage site
         run: |
           mkdir -p _site
-          cp index.html style.css game.js levels.js music.js i18n.js _site/
-          ls -la _site
+          cp index.html style.css favicon.svg \
+             config.js i18n.js progress.js account.js levels.js music.js game.js _site/
+          cp -r assets _site/
+          ls -la _site _site/assets
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
