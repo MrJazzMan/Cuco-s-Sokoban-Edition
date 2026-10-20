@@ -21,7 +21,34 @@ const I18n = (() => {
 
   const STRINGS = {
     en: {
-      docTitle: "Sokoban — Crate Puzzle",
+      docTitle: "Sucoban — Crate Puzzle",
+
+      // Splash + what's new
+      splashPress: "Press ENTER to start",
+      splashTap: "Tap to start",
+      whatsNewTitle: "🎉 What's new",
+      whatsNewSub: "Sucoban {v} is here! Here's what changed:",
+      gotIt: "Let's play →",
+      releaseNotes: [
+        "🏷️ Our game has a new name: <b>Sucoban</b>.",
+        "☁️ Sign in with Google to keep your progress, scores and settings on every device.",
+        "📱 On phones the whole board now fits on screen — no more hidden walls or crates.",
+        "⏎ When you clear a level, just press <b>Enter</b> to go to the next one.",
+        "↩️ Undo now moves only the crate you pushed, so the board never looks shuffled.",
+        "🔇 Music really stops when muted or when you switch to another tab.",
+        "🖼️ A brand-new title screen.",
+      ],
+
+      // Account
+      signInGoogle: "Sign in with Google",
+      signInPitch: "Save your progress and continue on any device.",
+      signingIn: "Signing in…",
+      signedInAs: "Signed in as",
+      signOut: "Sign out",
+      account: "Account",
+      guestNote: "Playing as guest — progress is saved on this device only.",
+      signInError: "Sign-in didn't work. Please try again.",
+      syncError: "Cloud sync is unavailable right now. Your progress is still saved on this device.",
 
       // Entry screen
       entryTagline: "Push every crate onto a glowing target. Pure puzzle bliss.",
@@ -79,10 +106,10 @@ const I18n = (() => {
       language: "Language",
 
       stages: {
-        beach: { title: "Beach Sokoban", name: "Beach" },
-        jungle: { title: "Jungle Sokoban", name: "Jungle" },
-        desert: { title: "Desert Sokoban", name: "Desert" },
-        city: { title: "City Sokoban", name: "City" },
+        beach: { title: "Beach Sucoban", name: "Beach" },
+        jungle: { title: "Jungle Sucoban", name: "Jungle" },
+        desert: { title: "Desert Sucoban", name: "Desert" },
+        city: { title: "City Sucoban", name: "City" },
       },
       levels: {
         beach: ["First Steps", "Tide Pool", "Sandbar", "Lagoon", "Coral Maze",
@@ -98,7 +125,34 @@ const I18n = (() => {
     },
 
     pt: {
-      docTitle: "Sokoban — Puzzle de Caixotes",
+      docTitle: "Sucoban — Puzzle de Caixotes",
+
+      // Abertura + novidades
+      splashPress: "Carrega em ENTER para começar",
+      splashTap: "Toca para começar",
+      whatsNewTitle: "🎉 Novidades",
+      whatsNewSub: "Chegou o Sucoban {v}! Eis o que mudou:",
+      gotIt: "Vamos jogar →",
+      releaseNotes: [
+        "🏷️ O jogo tem um nome novo: <b>Sucoban</b>.",
+        "☁️ Entra com a tua conta Google e guarda o progresso, os recordes e as definições em todos os teus dispositivos.",
+        "📱 No telemóvel, o tabuleiro já cabe todo no ecrã — sem paredes nem caixotes escondidos.",
+        "⏎ Quando concluis um nível, basta carregar em <b>Enter</b> para passar ao seguinte.",
+        "↩️ Anular agora só mexe o caixote que empurraste — o tabuleiro já não parece baralhado.",
+        "🔇 A música fica mesmo em silêncio quando a desligas ou quando mudas de separador.",
+        "🖼️ Um ecrã de abertura novinho em folha.",
+      ],
+
+      // Conta
+      signInGoogle: "Entrar com Google",
+      signInPitch: "Guarda o teu progresso e continua em qualquer dispositivo.",
+      signingIn: "A entrar…",
+      signedInAs: "Sessão iniciada como",
+      signOut: "Terminar sessão",
+      account: "Conta",
+      guestNote: "A jogar como convidado — o progresso fica guardado só neste dispositivo.",
+      signInError: "Não foi possível entrar. Tenta outra vez.",
+      syncError: "A sincronização está indisponível de momento. O teu progresso continua guardado neste dispositivo.",
 
       // Ecrã de entrada
       entryTagline: "Empurra cada caixote para um alvo luminoso. Puro prazer de puzzle.",
@@ -156,10 +210,10 @@ const I18n = (() => {
       language: "Idioma",
 
       stages: {
-        beach: { title: "Sokoban da Praia", name: "Praia" },
-        jungle: { title: "Sokoban da Selva", name: "Selva" },
-        desert: { title: "Sokoban do Deserto", name: "Deserto" },
-        city: { title: "Sokoban da Cidade", name: "Cidade" },
+        beach: { title: "Sucoban da Praia", name: "Praia" },
+        jungle: { title: "Sucoban da Selva", name: "Selva" },
+        desert: { title: "Sucoban do Deserto", name: "Deserto" },
+        city: { title: "Sucoban da Cidade", name: "Cidade" },
       },
       levels: {
         beach: ["Primeiros Passos", "Poça de Maré", "Banco de Areia", "Lagoa",
@@ -177,11 +231,17 @@ const I18n = (() => {
     },
   };
 
-  const LANG_KEY = "sokoban-lang";
+  const LANG_KEY = "sucoban-lang";
+  const LEGACY_LANG_KEY = "sokoban-lang";
   const SUPPORTED = ["en", "pt"];
   const listeners = [];
 
   function detect() {
+    const legacy = localStorage.getItem(LEGACY_LANG_KEY);
+    if (legacy) {
+      localStorage.setItem(LANG_KEY, legacy);
+      localStorage.removeItem(LEGACY_LANG_KEY);
+    }
     const saved = localStorage.getItem(LANG_KEY);
     if (saved && SUPPORTED.includes(saved)) return saved;
     const nav = (navigator.language || navigator.userLanguage || "en").toLowerCase();

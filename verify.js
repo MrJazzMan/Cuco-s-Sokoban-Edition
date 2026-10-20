@@ -67,6 +67,15 @@ function solve(level) {
 }
 
 let allOk = true;
+
+const seenIds = new Map();
+STAGES.forEach((stage) => stage.levels.forEach((lvl) => {
+  if (seenIds.has(lvl.id)) {
+    console.log(`FAIL duplicate level id "${lvl.id}" (${seenIds.get(lvl.id)} / ${lvl.name})`);
+    allOk = false;
+  }
+  seenIds.set(lvl.id, lvl.name);
+}));
 STAGES.forEach((stage, si) => {
   console.log(`\n=== Stage ${si + 1}: ${stage.name} (${stage.levels.length} levels) ===`);
   stage.levels.forEach((lvl, i) => {
