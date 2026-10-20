@@ -1,6 +1,6 @@
 # Publish Sucoban to GitHub Pages on every push to main.
 # Live at https://mrjazzman.github.io/Cuco-s-Sokoban-Edition/
-# (or the custom domain set in Settings → Pages, see README).
+# and, once the custom domain is set up (see README), https://sucoban.miguelg.dev
 #
 # The deploy only runs if every level passes verify.js.
 
