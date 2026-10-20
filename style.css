@@ -70,15 +70,18 @@ body { height: 100dvh; }
 
 .topbar {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; min-width: 0;
 }
 .logo {
   margin: 0; font-size: clamp(22px, 5vw, 32px); font-weight: 800;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
   color: #fff; text-shadow: 0 2px 0 #f0a04b, 0 4px 10px rgba(0,0,0,.25);
   letter-spacing: .5px;
 }
 .level-pill {
   background: rgba(255,255,255,.85); padding: 6px 14px; border-radius: 999px;
   font-weight: 700; box-shadow: 0 3px 8px rgba(0,0,0,.12); white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; min-width: 0;
 }
 
 .stats {
@@ -93,12 +96,16 @@ body { height: 100dvh; }
 .stat-value { font-size: clamp(16px, 4vw, 20px); font-weight: 800; }
 
 /* ---------- Board ---------- */
+/* The board is taken out of layout (absolute) and centred + scaled by fitBoard(),
+   so its unscaled width can never widen the wrapper on narrow screens. */
 .board-wrap {
-  position: relative; display: grid; place-items: center;
+  position: relative;
   flex: 1 1 auto; min-height: 0; width: 100%; overflow: hidden;
 }
 .board {
-  position: relative;
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
   background:
     repeating-linear-gradient(0deg, transparent 0 calc(var(--tile) - 1px), rgba(0,0,0,.04) calc(var(--tile) - 1px) var(--tile)),
     repeating-linear-gradient(90deg, transparent 0 calc(var(--tile) - 1px), rgba(0,0,0,.04) calc(var(--tile) - 1px) var(--tile));
@@ -178,6 +185,7 @@ body { height: 100dvh; }
   background: #fff; box-shadow: 0 4px 0 #d9c39a, 0 6px 10px rgba(0,0,0,.15);
   transition: transform .06s ease, box-shadow .06s ease; user-select: none;
 }
+.btn:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
 .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #d9c39a, 0 2px 6px rgba(0,0,0,.15); }
 .btn:disabled { opacity: .38; cursor: not-allowed; filter: grayscale(.5); transform: none; box-shadow: 0 2px 0 #d9c39a; pointer-events: none; }
 
@@ -476,9 +484,70 @@ body.theme-city .dbtn { color: #4a5878; }
 }
 .entry-controls { margin: 16px 0 0; font-size: 12px; font-weight: 600; opacity: .6; }
 
+/* ---------- Splash / load screen ---------- */
+.splash {
+  position: fixed; inset: 0; z-index: 100; cursor: pointer; outline: none;
+  background: #0d1b2a; animation: fade .4s ease;
+}
+.splash picture, .splash-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+}
+.splash-img { object-fit: cover; object-position: center top; }
+.splash-press {
+  position: absolute; left: 0; right: 0; bottom: max(7vh, env(safe-area-inset-bottom, 0px) + 28px);
+  margin: 0 auto; width: max-content; max-width: calc(100% - 32px);
+  padding: 10px 22px; border-radius: 999px; text-align: center;
+  font-size: clamp(16px, 3.4vw, 24px); font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  color: #fff; background: rgba(13, 27, 42, .55); backdrop-filter: blur(3px);
+  text-shadow: 0 2px 6px rgba(0,0,0,.6); box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  animation: blink 1.6s ease-in-out infinite;
+}
+@keyframes blink { 50% { opacity: .45; } }
+
+/* ---------- What's new ---------- */
+.notes-card {
+  width: min(440px, 100%); text-align: left; max-height: calc(100dvh - 40px);
+  display: flex; flex-direction: column; padding: 24px 20px 20px;
+}
+.notes-title { margin: 0 0 4px; color: var(--sea-deep); text-align: center; font-size: clamp(24px, 6vw, 30px); }
+.notes-sub { margin: 0 0 12px; text-align: center; font-weight: 700; opacity: .75; }
+.notes-list {
+  list-style: none; margin: 0 0 16px; padding: 0 2px; min-height: 0; overflow: auto;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.notes-list li {
+  background: #fff7e3; border-radius: 12px; padding: 8px 12px;
+  font-weight: 600; line-height: 1.35; font-size: 15px;
+}
+.notes-card .entry-play { flex: 0 0 auto; }
+@media (max-width: 480px) {
+  .notes-list li { font-size: 14px; padding: 7px 10px; }
+}
+
+/* ---------- Account ---------- */
+.entry-account { margin-top: 14px; }
+.google-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 11px 14px; font-size: 15px;
+  box-shadow: 0 0 0 1px #dadce0, 0 3px 0 #d9c39a, 0 5px 8px rgba(0,0,0,.12);
+}
+.account-note { margin: 8px 0 0; font-size: 12px; font-weight: 600; opacity: .65; text-align: center; }
+.account-error { margin: 8px 0 0; font-size: 12px; font-weight: 700; color: #c0392b; text-align: center; }
+.account-user { display: flex; align-items: center; gap: 10px; justify-content: center; }
+.account-avatar { width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto; }
+.account-name { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.account-out { padding: 7px 12px; font-size: 13px; flex: 0 0 auto; }
+.account-row {
+  display: flex; flex-direction: column; gap: 10px; margin-top: 18px; padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,.08);
+}
+.account-row .account-slot { width: 100%; }
+
 [hidden] { display: none !important; }
 
 @media (max-width: 480px) {
+  .topbar { flex-wrap: wrap; justify-content: center; row-gap: 6px; }
+  .level-pill { font-size: 13px; padding: 5px 12px; max-width: 100%; }
   .ctrl { width: 50px; height: 48px; font-size: 21px; }
   .stat-label { font-size: 10px; }
 }

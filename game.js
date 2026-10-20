@@ -1,18 +1,19 @@
-/* Sokoban — multi-stage game engine & UI wiring. */
+/* Sucoban — multi-stage game engine & UI wiring. */
 (() => {
   "use strict";
 
-  const STORE_KEY = "beach-sokoban-v1";
+  const VERSION = (window.SUCOBAN && window.SUCOBAN.version) || "dev";
   const TILE = 64; // logical px; board is scaled to fit via CSS transform
 
   // ---- Flatten stages into a single addressable list ----
-  // FLAT[i] = { name, map, stage, stageIdx, levelInStage }
+  // FLAT[i] = { id, name, map, stage, stageIdx, levelInStage }
   const FLAT = [];
   STAGES.forEach((stage, si) => {
     stage.levels.forEach((lv, li) => {
       FLAT.push({ ...lv, stage, stageIdx: si, levelInStage: li });
     });
   });
+  const indexOfId = (id) => FLAT.findIndex((f) => f.id === id);
 
   // ---- DOM ----
   const $ = (id) => document.getElementById(id);
@@ -25,20 +26,25 @@
   const elLogo = $("logo");
   const winOverlay = $("winOverlay");
   const winStats = $("winStats");
+  const winNext = $("winNext");
   const confetti = $("confetti");
   const levelModal = $("levelModal");
   const levelGrid = $("levelGrid");
   const helpModal = $("helpModal");
   const decorEl = $("decor");
   const elSound = $("btnSound");
+  const splash = $("splash");
+  const splashPress = $("splashPress");
+  const whatsNew = $("whatsNew");
   const entryScreen = $("entryScreen");
   const entryPlay = $("entryPlay");
 
-  // ---- Persistent progress ----
-  const save = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
-  const persist = () => localStorage.setItem(STORE_KEY, JSON.stringify(save));
-  save.best = save.best || {};     // { flatIndex: moves }
-  save.cleared = save.cleared || {}; // { flatIndex: true }
+  // ---- Persistent progress (see progress.js) ----
+  Progress.init(FLAT.map((f) => f.id));
+  const P = () => Progress.data;
+  const persist = () => Progress.save();
+  const cleared = (i) => !!P().cleared[FLAT[i].id];
+  const bestOf = (i) => P().best[FLAT[i].id];
 
   // ---- Runtime state ----
   let idx = 0;
@@ -83,8 +89,7 @@
 
     applyTheme(theme);
     render(boxes);
-    save.lastLevel = idx;
-    persist();
+    if (P().lastLevel !== def.id) { P().lastLevel = def.id; persist(); }
     refreshStats();
     updatePill();
     winOverlay.hidden = true;
@@ -211,9 +216,9 @@
     el.dataset.r = r; el.dataset.c = c;
   }
 
-  // Scale the board to fit whatever space the flex layout actually grants the
-  // wrapper. Measuring the live box (instead of guessing reserved px) keeps the
-  // board centered and on-screen across phones, tablets and desktop.
+  // The board is absolutely centred in its wrapper and scaled to whatever space
+  // the flex layout grants the wrapper. Its unscaled size never takes part in
+  // layout, so a wide level can't push itself off-screen on narrow phones.
   function fitBoard() {
     const wrap = board.parentElement;
     const availW = Math.max(wrap.clientWidth - 8, 40);
@@ -221,8 +226,7 @@
     const bw = state.cols * TILE + 12;
     const bh = state.rows * TILE + 12;
     const scale = Math.min(availW / bw, availH / bh, 1.08);
-    board.style.transform = `scale(${scale})`;
-    board.style.transformOrigin = "center center";
+    board.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
 
   // ---------- Movement ----------
@@ -236,21 +240,21 @@
     const nk = key(nr, nc);
     if (walls.has(nk)) { faceAndBump(dir); return; }
 
+    const snap = { player: { ...player }, moves: state.moves, pushes: state.pushes, box: null };
     let pushed = false;
     if (state.boxEls.has(nk)) {
       const br = nr + dr, bc = nc + dc, bk = key(br, bc);
       if (walls.has(bk) || state.boxEls.has(bk)) { faceAndBump(dir); return; }
-      pushHistory();
       const boxEl = state.boxEls.get(nk);
       state.boxEls.delete(nk);
       state.boxEls.set(bk, boxEl);
       placeActor(boxEl, br, bc);
       boxEl.classList.remove("bump"); void boxEl.offsetWidth; boxEl.classList.add("bump");
       state.pushes++;
+      snap.box = { from: nk, to: bk };
       pushed = true;
-    } else {
-      pushHistory();
     }
+    state.history.push(snap);
 
     player.r = nr; player.c = nc;
     placeActor(state.playerEl, nr, nc);
@@ -273,36 +277,29 @@
     p.classList.remove("walk"); void p.offsetWidth; p.classList.add("walk");
   }
 
-  function pushHistory() {
-    state.history.push({
-      player: { ...state.player },
-      boxes: [...state.boxEls.keys()],
-      moves: state.moves,
-      pushes: state.pushes,
-    });
-    if (state.history.length > 500) state.history.shift();
-  }
-
+  // Each history entry records only the crate that moved, so undo slides that
+  // one crate back instead of reshuffling every crate element.
   function undo() {
     if (!state || !state.history.length) return;
+    const wasShowingWin = !winOverlay.hidden;
     state.won = false;
     winOverlay.hidden = true;
     const snap = state.history.pop();
     state.player = { ...snap.player };
     placeActor(state.playerEl, state.player.r, state.player.c);
 
-    const oldEls = [...state.boxEls.values()];
-    state.boxEls.clear();
-    snap.boxes.forEach((k, i) => {
-      const [r, c] = parseKey(k);
-      const el = oldEls[i];
+    if (snap.box) {
+      const el = state.boxEls.get(snap.box.to);
+      state.boxEls.delete(snap.box.to);
+      state.boxEls.set(snap.box.from, el);
+      const [r, c] = parseKey(snap.box.from);
       placeActor(el, r, c);
-      state.boxEls.set(k, el);
-    });
+    }
     state.moves = snap.moves;
     state.pushes = snap.pushes;
     updateCrateStates();
     refreshStats();
+    if (wasShowingWin) board.focus({ preventScroll: true });
   }
 
   function updateCrateStates() {
@@ -319,23 +316,28 @@
   function checkWin() {
     if (state._done === state.targets.size && state.targets.size > 0) {
       state.won = true;
-      const prev = save.best[idx];
-      if (prev == null || state.moves < prev) save.best[idx] = state.moves;
-      save.cleared[idx] = true;
+      const id = FLAT[idx].id;
+      const prev = P().best[id];
+      if (prev == null || state.moves < prev) P().best[id] = state.moves;
+      P().cleared[id] = true;
       persist();
       refreshStats();
+      updateNav();
       setTimeout(showWin, 220);
     }
   }
 
   function showWin() {
+    if (!state.won) return;
     const isLast = idx === FLAT.length - 1;
     winStats.textContent =
       `${state.moves} ${I18n.t("movesUnit")} · ${state.pushes} ${I18n.t("pushesUnit")}` +
-      (save.best[idx] === state.moves ? "  " + I18n.t("newBest") : "");
-    $("winNext").textContent = isLast ? I18n.t("finish") : I18n.t("nextLevel");
+      (bestOf(idx) === state.moves ? "  " + I18n.t("newBest") : "");
+    winNext.textContent = isLast ? I18n.t("finish") : I18n.t("nextLevel");
+    const wasHidden = winOverlay.hidden;
     winOverlay.hidden = false;
-    launchConfetti();
+    winNext.focus({ preventScroll: true });
+    if (wasHidden) launchConfetti();
   }
 
   // ---------- Stats ----------
@@ -343,7 +345,7 @@
     elMoves.textContent = state.moves;
     elPushes.textContent = state.pushes;
     elCrates.textContent = `${state._done || 0} / ${state.targets.size}`;
-    const b = save.best[idx];
+    const b = bestOf(idx);
     elBest.textContent = b == null ? "—" : b;
   }
 
@@ -365,7 +367,7 @@
 
   // A level is playable only once the previous one is cleared, so a first-time
   // player can't see the stages/levels that lie ahead.
-  const unlocked = (i) => i === 0 || !!save.cleared[i - 1];
+  const unlocked = (i) => i === 0 || cleared(i - 1);
 
   // ---------- Level select (grouped by stage, progressively revealed) ----------
   function openLevels() {
@@ -388,10 +390,10 @@
 
       const head = document.createElement("div");
       head.className = "stage-head";
-      const cleared = stage.levels.filter((_, li) => save.cleared[stageStart + li]).length;
+      const done = stage.levels.filter((_, li) => cleared(stageStart + li)).length;
       head.innerHTML =
         `<span>${stage.emoji} ${I18n.t("stage")} ${si + 1} · ${I18n.stageName(stage.theme)}</span>` +
-        `<span class="stage-prog">${cleared}/${stage.levels.length} ⭐</span>`;
+        `<span class="stage-prog">${done}/${stage.levels.length} ⭐</span>`;
       levelGrid.appendChild(head);
 
       const grid = document.createElement("div");
@@ -402,9 +404,9 @@
         card.className = "level-card";
         const lvlLabel = `${I18n.t("lvl").toUpperCase()} ${li + 1}`;
         if (unlocked(fi)) {
-          if (save.cleared[fi]) card.classList.add("done");
+          if (cleared(fi)) card.classList.add("done");
           if (fi === idx) card.classList.add("current");
-          const best = save.best[fi];
+          const best = bestOf(fi);
           const bestTxt = best != null
             ? `${I18n.t("bestPrefix")} ${best} ${I18n.t("movesUnit")}`
             : I18n.t("notCleared");
@@ -436,10 +438,15 @@
     W: "up", S: "down", A: "left", D: "right",
   };
   const anyModalOpen = () => !levelModal.hidden || !helpModal.hidden;
+  const introOpen = () => !splash.hidden || !whatsNew.hidden || !entryScreen.hidden;
   function closeModals() { levelModal.hidden = true; helpModal.hidden = true; }
 
   document.addEventListener("keydown", (e) => {
-    if (entryScreen && !entryScreen.hidden) return; // title screen up — ignore game keys
+    if (!splash.hidden) {
+      if ((e.key === "Enter" || e.key === " ") && !e.repeat) { e.preventDefault(); dismissSplash(); }
+      return;
+    }
+    if (introOpen()) return; // intro screens: Enter activates their focused button
     if (anyModalOpen()) { if (e.key === "Escape") closeModals(); return; }
     if (KEYMAP[e.key]) { e.preventDefault(); move(KEYMAP[e.key]); return; }
     if (e.key === "u" || e.key === "U" || e.key === "z" || e.key === "Z") undo();
@@ -467,7 +474,7 @@
   levelModal.addEventListener("click", (e) => { if (e.target === levelModal) levelModal.hidden = true; });
   helpModal.addEventListener("click", (e) => { if (e.target === helpModal) helpModal.hidden = true; });
   $("winReplay").addEventListener("click", () => loadLevel(idx));
-  $("winNext").addEventListener("click", () => {
+  winNext.addEventListener("click", () => {
     if (idx + 1 < FLAT.length) loadLevel(idx + 1); // current level just cleared → next is unlocked
     else { winOverlay.hidden = true; openLevels(); } // finished the whole game
   });
@@ -495,14 +502,14 @@
   window.addEventListener("load", () => requestAnimationFrame(refit));
 
   // ---------- Music ----------
-  let muted = !!save.muted;
+  let muted = P().muted;
   const reflectSound = () => { elSound.textContent = muted ? "🔇" : "🔊"; };
   reflectSound();
 
   function kickMusic() {
     if (state && state.theme.song) Music.setSong(state.theme.song);
-    Music.start();
     Music.setMuted(muted);
+    Music.start();
   }
   // Browsers require a user gesture before audio — start on the first one.
   function firstGesture() {
@@ -515,10 +522,89 @@
 
   elSound.addEventListener("click", () => {
     muted = !muted;
-    save.muted = muted; persist();
+    P().muted = muted; persist();
     reflectSound();
     if (!Music.isStarted() && !muted) kickMusic();
     else Music.setMuted(muted);
+  });
+
+  // ---------- Account (Google sign-in + cloud sync) ----------
+  const GOOGLE_G =
+    '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">' +
+    '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.9 6.2C12.5 13.6 17.8 9.5 24 9.5z"/>' +
+    '<path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/>' +
+    '<path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.2C1 16.6 0 20.2 0 24s1 7.4 2.7 10.8l7.9-6.2z"/>' +
+    '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.2C6.6 42.6 14.6 48 24 48z"/>' +
+    "</svg>";
+
+  function renderAccount() {
+    document.querySelectorAll("[data-account]").forEach((el) => (el.hidden = !Account.available));
+    if (!Account.available) return;
+    document.querySelectorAll(".account-slot").forEach((slot) => {
+      slot.innerHTML = "";
+      const u = Account.user;
+      if (u) {
+        const row = document.createElement("div");
+        row.className = "account-user";
+        if (u.photoURL) {
+          const img = document.createElement("img");
+          img.className = "account-avatar";
+          img.src = u.photoURL; img.alt = ""; img.referrerPolicy = "no-referrer";
+          row.appendChild(img);
+        }
+        const who = document.createElement("span");
+        who.className = "account-name";
+        who.textContent = u.displayName || u.email || "";
+        who.title = `${I18n.t("signedInAs")} ${u.email || who.textContent}`;
+        row.appendChild(who);
+        const out = document.createElement("button");
+        out.type = "button";
+        out.className = "btn btn-ghost account-out";
+        out.textContent = I18n.t("signOut");
+        out.addEventListener("click", () => Account.signOut());
+        row.appendChild(out);
+        slot.appendChild(row);
+      } else {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn google-btn";
+        btn.disabled = !Account.ready || Account.busy;
+        btn.innerHTML = GOOGLE_G;
+        const label = document.createElement("span");
+        label.textContent = Account.busy ? I18n.t("signingIn") : I18n.t("signInGoogle");
+        btn.appendChild(label);
+        btn.addEventListener("click", () => Account.signIn());
+        slot.appendChild(btn);
+        const note = document.createElement("p");
+        note.className = "account-note";
+        note.textContent = I18n.t("signInPitch");
+        slot.appendChild(note);
+      }
+      if (Account.error) {
+        const err = document.createElement("p");
+        err.className = "account-error";
+        err.textContent = I18n.t(Account.error);
+        slot.appendChild(err);
+      }
+    });
+  }
+  Account.onChange(renderAccount);
+
+  // Progress was replaced (sign-in, sign-out or another device synced).
+  Progress.onChange((data) => {
+    if (data.lang && data.lang !== I18n.getLang()) I18n.setLang(data.lang);
+    if (data.muted !== muted) {
+      muted = data.muted;
+      reflectSound();
+      if (Music.isStarted()) Music.setMuted(muted);
+    }
+    if (introOpen()) {
+      const at = data.lastLevel ? indexOfId(data.lastLevel) : 0;
+      if (at >= 0 && at !== idx) loadLevel(at);
+      updateEntryPlayLabel();
+    }
+    if (state) { refreshStats(); updateNav(); }
+    if (!levelModal.hidden) openLevels();
   });
 
   // ---------- Localization ----------
@@ -531,6 +617,9 @@
       updatePill();
     }
     updateEntryPlayLabel();
+    renderSplashPrompt();
+    renderNotes();
+    renderAccount();
     if (!levelModal.hidden) openLevels();
     if (state && state.won && !winOverlay.hidden) showWin();
   }
@@ -543,17 +632,58 @@
   langButtons().forEach((b) =>
     b.addEventListener("click", () => I18n.setLang(b.dataset.lang))
   );
-  I18n.onChange(relocalize);
+  I18n.onChange((lang) => {
+    if (P().lang !== lang) { P().lang = lang; persist(); }
+    relocalize();
+  });
 
-  // ---------- Entry screen ----------
-  const hasProgress = () =>
-    Object.keys(save.cleared).length > 0 ||
-    (typeof save.lastLevel === "number" && save.lastLevel > 0);
+  // ---------- Intro: splash → what's new (once per release) → entry ----------
+  const isTouch = matchMedia("(hover: none) and (pointer: coarse)").matches;
+  let introShownAt = 0;
+  // Ignore activations right after a screen appears, so a held Enter key can't skip it.
+  const tooSoon = () => performance.now() - introShownAt < 350;
+
+  function renderSplashPrompt() {
+    splashPress.textContent = I18n.t(isTouch ? "splashTap" : "splashPress");
+  }
+
+  function renderNotes() {
+    $("notesSub").textContent = I18n.t("whatsNewSub").replace("{v}", VERSION);
+    const list = $("notesList");
+    list.innerHTML = "";
+    for (const note of I18n.t("releaseNotes")) {
+      const li = document.createElement("li");
+      li.innerHTML = note;
+      list.appendChild(li);
+    }
+  }
+
+  function showIntro(el, focusEl) {
+    el.hidden = false;
+    introShownAt = performance.now();
+    focusEl.focus({ preventScroll: true });
+  }
+
+  function dismissSplash() {
+    if (splash.hidden) return;
+    splash.hidden = true;
+    if (P().seenNotes !== VERSION) showIntro(whatsNew, $("notesOk"));
+    else showIntro(entryScreen, entryPlay);
+  }
+  splash.addEventListener("click", dismissSplash);
+
+  $("notesOk").addEventListener("click", () => {
+    if (tooSoon()) return;
+    P().seenNotes = VERSION; persist();
+    whatsNew.hidden = true;
+    showIntro(entryScreen, entryPlay);
+  });
+
   function updateEntryPlayLabel() {
-    entryPlay.textContent = hasProgress() ? I18n.t("continueGame") : I18n.t("play");
+    entryPlay.textContent = Progress.hasProgress() ? I18n.t("continueGame") : I18n.t("play");
   }
   function startGame() {
-    if (entryScreen.hidden) return;
+    if (entryScreen.hidden || tooSoon()) return;
     entryScreen.hidden = true;
     if (!muted) kickMusic();
     board.focus({ preventScroll: true });
@@ -561,9 +691,16 @@
   entryPlay.addEventListener("click", startGame);
 
   // ---------- Boot ----------
+  if (P().lang && P().lang !== I18n.getLang()) I18n.setLang(P().lang);
   I18n.apply();
   reflectLangButtons();
   updateEntryPlayLabel();
-  const startAt = typeof save.lastLevel === "number" ? save.lastLevel : 0;
-  loadLevel(startAt);
+  renderSplashPrompt();
+  renderNotes();
+  $("versionLabel").textContent = "v" + VERSION;
+  const startAt = P().lastLevel ? indexOfId(P().lastLevel) : 0;
+  loadLevel(startAt >= 0 ? startAt : 0);
+  renderAccount();
+  Account.init();
+  splash.focus({ preventScroll: true });
 })();

@@ -1,5 +1,5 @@
 /*
- * Sokoban — stage & level data.
+ * Sucoban — stage & level data.
  *
  * Map legend:
  *   #  wall            (space) sand / jungle floor
@@ -14,7 +14,7 @@ const STAGES = [
   {
     name: "Beach",
     theme: "beach",
-    title: "Beach Sokoban",
+    title: "Beach Sucoban",
     emoji: "🏖️",
     wall: "🌴",
     player: "🦀",
@@ -84,7 +84,7 @@ const STAGES = [
   {
     name: "Jungle",
     theme: "jungle",
-    title: "Jungle Sokoban",
+    title: "Jungle Sucoban",
     emoji: "🌴",
     wall: "🌳",
     player: "🐒",
@@ -158,7 +158,7 @@ const STAGES = [
   {
     name: "Desert",
     theme: "desert",
-    title: "Desert Sokoban",
+    title: "Desert Sucoban",
     emoji: "🏜️",
     wall: "🌵",
     player: "🐫",
@@ -304,7 +304,7 @@ const STAGES = [
   {
     name: "City",
     theme: "city",
-    title: "City Sokoban",
+    title: "City Sucoban",
     emoji: "🏙️",
     wall: "🏢",
     player: "🚶",
@@ -454,6 +454,19 @@ const STAGES = [
     ],
   },
 ];
+
+// Stable level ids ("beach:first-steps") key saved progress, so levels can be
+// reordered or inserted freely. Renaming a level's English name changes its id
+// and resets its progress — set an explicit `id` on the level to keep it.
+STAGES.forEach((stage) => {
+  stage.levels.forEach((lv) => {
+    if (!lv.id) {
+      const slug = lv.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      lv.id = stage.theme + ":" + slug;
+    }
+  });
+});
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = STAGES;

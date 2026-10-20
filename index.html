@@ -4,7 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#37b6c4" />
-  <title>Sokoban</title>
+  <title>Sucoban</title>
+  <meta name="description" content="Sucoban — push every crate onto a glowing target across beach, jungle, desert and city stages." />
+  <meta property="og:title" content="Sucoban" />
+  <meta property="og:description" content="Push every crate onto a glowing target. Pure puzzle bliss." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://mrjazzman.github.io/Cuco-s-Sokoban-Edition/assets/og-image.jpg" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+  <link rel="preload" as="image" href="assets/splash-portrait.webp" media="(orientation: portrait)" />
+  <link rel="preload" as="image" href="assets/splash-landscape.webp" media="(orientation: landscape)" />
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,7 +32,7 @@
 
   <main class="app">
     <header class="topbar">
-      <h1 class="logo" id="logo">🏖️ Beach Sokoban</h1>
+      <h1 class="logo" id="logo">🏖️ Beach Sucoban</h1>
       <div class="level-pill" id="levelPill">Level 1</div>
     </header>
 
@@ -35,7 +44,7 @@
     </section>
 
     <div class="board-wrap">
-      <div class="board" id="board" tabindex="0" aria-label="Sokoban board"></div>
+      <div class="board" id="board" tabindex="0" aria-label="Sucoban board"></div>
       <div class="win-overlay" id="winOverlay" hidden>
         <div class="win-card">
           <div class="win-emoji">🥥</div>
@@ -62,7 +71,7 @@
     <p class="hint" data-i18n-html="hint">Swipe on the board or tap <b>❓</b> for the control pad</p>
   </main>
 
-  <footer class="site-footer">© 2026 Cuco Enterprise</footer>
+  <footer class="site-footer">© 2026 Cuco Enterprise · <span id="versionLabel"></span></footer>
 
   <!-- Level select modal -->
   <div class="modal" id="levelModal" hidden>
@@ -101,6 +110,11 @@
         </ul>
         <p class="help-tip" data-i18n-html="helpTip">Stuck? Use <b>Undo</b> freely — there's no penalty.</p>
 
+        <div class="account-row" data-account hidden>
+          <span class="lang-row-label" data-i18n="account">Account</span>
+          <div class="account-slot"></div>
+        </div>
+
         <div class="lang-row">
           <span class="lang-row-label" data-i18n="language">Language</span>
           <div class="lang-switch" id="langSwitchHelp">
@@ -115,21 +129,44 @@
   <div class="confetti" id="confetti" aria-hidden="true"></div>
 
   <!-- Entry / title screen -->
-  <div class="entry" id="entryScreen">
+  <div class="entry" id="entryScreen" hidden>
     <div class="entry-card">
       <div class="entry-emoji">🧩</div>
-      <h1 class="entry-title">Sokoban</h1>
+      <h1 class="entry-title">Sucoban</h1>
       <p class="entry-tagline" data-i18n="entryTagline">Push every crate onto a glowing target. Pure puzzle bliss.</p>
       <div class="lang-switch entry-lang" id="langSwitchEntry">
         <button class="lang-btn" data-lang="en" type="button">🇬🇧 EN</button>
         <button class="lang-btn" data-lang="pt" type="button">🇵🇹 PT</button>
       </div>
       <button class="btn btn-primary entry-play" id="entryPlay" data-i18n="play">Play</button>
+      <div class="entry-account account-slot" data-account hidden></div>
       <p class="entry-controls" data-i18n="entryControls">Arrow keys / WASD to move · Swipe on touch</p>
     </div>
   </div>
 
+  <!-- What's new (shown once per release) -->
+  <div class="entry" id="whatsNew" hidden>
+    <div class="entry-card notes-card">
+      <h2 class="notes-title" data-i18n="whatsNewTitle">🎉 What's new</h2>
+      <p class="notes-sub" id="notesSub"></p>
+      <ul class="notes-list" id="notesList"></ul>
+      <button class="btn btn-primary entry-play" id="notesOk" data-i18n="gotIt">Let's play →</button>
+    </div>
+  </div>
+
+  <!-- Splash / load screen -->
+  <div class="splash" id="splash" role="button" tabindex="0">
+    <picture>
+      <source media="(orientation: portrait)" srcset="assets/splash-portrait.webp" />
+      <img class="splash-img" src="assets/splash-landscape.webp" alt="Sucoban" />
+    </picture>
+    <p class="splash-press" id="splashPress"></p>
+  </div>
+
+  <script src="config.js"></script>
   <script src="i18n.js"></script>
+  <script src="progress.js"></script>
+  <script src="account.js"></script>
   <script src="levels.js"></script>
   <script src="music.js"></script>
   <script src="game.js"></script>
