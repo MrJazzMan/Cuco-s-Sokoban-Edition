@@ -175,13 +175,17 @@ isn't involved; it hosts only the separate personal site at `miguelg.dev`.
 
 ### Optional: custom domain
 
-To serve the game at e.g. `gukoban.miguelg.dev`:
+To serve the game at `sucoban.miguelg.dev`:
 
-1. In the Cloudflare DNS for `miguelg.dev`, add a **CNAME** `gukoban` →
-   `mrjazzman.github.io`, with the proxy turned off ("DNS only").
-2. Repository **Settings → Pages → Custom domain**: `gukoban.miguelg.dev`.
-3. Add the domain to Firebase **Authorized domains**, and update the `og:image`
-   URL in `index.html`.
+1. In the Cloudflare DNS for `miguelg.dev`, add a **CNAME** record: name
+   `sucoban`, target `mrjazzman.github.io`, proxy turned off ("DNS only", grey
+   cloud) so GitHub can issue the HTTPS certificate.
+2. Repository **Settings → Pages → Custom domain**: `sucoban.miguelg.dev` →
+   **Save**. Once the DNS check passes, tick **Enforce HTTPS**. No `CNAME` file
+   is needed, because Pages is deployed by GitHub Actions.
+3. Add `sucoban.miguelg.dev` to Firebase **Authorized domains**.
+
+The old `github.io` address then redirects to the custom domain automatically.
 
 ## 📝 Version history
 
