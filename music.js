@@ -112,6 +112,9 @@ const Music = (() => {
   }
 
   function loop() {
+    if (!song) return;
+    // If the timer was throttled, skip the missed steps instead of firing them all at once.
+    if (nextTime < ctx.currentTime) nextTime = ctx.currentTime + 0.05;
     while (nextTime < ctx.currentTime + LOOKAHEAD) {
       scheduleStep(step, nextTime);
       const beat = 60 / song.tempo;
@@ -119,6 +122,30 @@ const Music = (() => {
       step++;
     }
   }
+
+  // The scheduler only runs while music is audible: started, unmuted and the page visible.
+  const shouldPlay = () => started && !muted && !document.hidden;
+
+  function sync() {
+    if (!ctx) return;
+    if (shouldPlay()) {
+      if (ctx.state === "suspended") ctx.resume();
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setTargetAtTime(0.16, ctx.currentTime, 0.05);
+      if (!timer) {
+        nextTime = ctx.currentTime + 0.12;
+        timer = setInterval(loop, INTERVAL);
+      }
+    } else {
+      if (timer) { clearInterval(timer); timer = null; }
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+      const c = ctx;
+      setTimeout(() => { if (!shouldPlay() && c.state === "running") c.suspend(); }, 250);
+    }
+  }
+
+  if (typeof document !== "undefined") document.addEventListener("visibilitychange", sync);
 
   return {
     setSong(s) {
@@ -131,16 +158,13 @@ const Music = (() => {
     start() {
       if (started) return;
       ensureContext();
-      if (ctx.state === "suspended") ctx.resume();
       started = true;
-      nextTime = ctx.currentTime + 0.12;
       step = 0;
-      timer = setInterval(loop, INTERVAL);
+      sync();
     },
     setMuted(m) {
       muted = m;
-      if (master) master.gain.setTargetAtTime(m ? 0 : 0.16, ctx.currentTime, 0.05);
-      if (!m && ctx && ctx.state === "suspended") ctx.resume();
+      sync();
     },
     isMuted() { return muted; },
     isStarted() { return started; },
